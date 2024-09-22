@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 
 from dataset.hypersim import Hypersim
+from dataset.front3d import Front3D
 from dataset.kitti import KITTI
 from dataset.vkitti2 import VKITTI2
 from depth_anything_v2.dpt import DepthAnythingV2
@@ -27,7 +28,7 @@ from util.utils import init_log
 parser = argparse.ArgumentParser(description='Depth Anything V2 for Metric Depth Estimation')
 
 parser.add_argument('--encoder', default='vitl', choices=['vits', 'vitb', 'vitl', 'vitg'])
-parser.add_argument('--dataset', default='hypersim', choices=['hypersim', 'vkitti'])
+parser.add_argument('--dataset', default='hypersim', choices=['hypersim', 'vkitti', 'front3d'])
 parser.add_argument('--img-size', default=518, type=int)
 parser.add_argument('--min-depth', default=0.001, type=float)
 parser.add_argument('--max-depth', default=20, type=float)
@@ -43,7 +44,7 @@ parser.add_argument('--port', default=None, type=int)
 def main():
     args = parser.parse_args()
     
-    warnings.simplefilter('ignore', np.RankWarning)
+    # warnings.simplefilter('ignore', np.RankWarning)
     
     logger = init_log('global', logging.INFO)
     logger.propagate = 0
@@ -63,6 +64,8 @@ def main():
         trainset = Hypersim('dataset/splits/hypersim/train.txt', 'train', size=size)
     elif args.dataset == 'vkitti':
         trainset = VKITTI2('dataset/splits/vkitti2/train.txt', 'train', size=size)
+    elif args.dataset == 'front3d':
+        trainset = Front3D('dataset/splits/front3d/train.txt', 'train', size=size)
     else:
         raise NotImplementedError
     trainsampler = torch.utils.data.distributed.DistributedSampler(trainset)
@@ -72,6 +75,8 @@ def main():
         valset = Hypersim('dataset/splits/hypersim/val.txt', 'val', size=size)
     elif args.dataset == 'vkitti':
         valset = KITTI('dataset/splits/kitti/val.txt', 'val', size=size)
+    elif args.dataset == 'front3d':
+        valset = Front3D('dataset/splits/front3d/val.txt', 'val', size=size)
     else:
         raise NotImplementedError
     valsampler = torch.utils.data.distributed.DistributedSampler(valset)
